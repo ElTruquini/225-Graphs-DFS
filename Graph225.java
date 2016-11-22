@@ -2,12 +2,12 @@
 /*
  * University of Victoria
  * CSC 225 - Fall 2016
- * Code template for assignment 4
+ * 	Graphs DFS Implementation - A4
  *	Daniel Olaya Moran - V00855054
  */
-import java.io.IOException;
+import java.io.*;
+import java.util.*;
 
-// DO NOT CHANGE THE CLASS NAME OR PACKAGE
 public class Graph225 {
 
 	/**
@@ -31,13 +31,13 @@ public class Graph225 {
 		int arrSize = 15;
 
 		public Graph() {
-			int[][] adjacencyMatrix = new int [arrSize][arrSize];
-			fillZeros(adjacencyMatrix);
-			print(adjacencyMatrix);
+			adjacencyMatrix = new int [arrSize][arrSize];
+			fillZeros();
+			print();
 		}
 
 		//Fills the newly created Matrix with -1
-		public void fillZeros (int [][] adjacencyMatrix){
+		public void fillZeros (){
 			for (int col = 0 ; col < adjacencyMatrix.length ; col++){
 				for (int row = 0 ; row < adjacencyMatrix[0].length ; row ++){
 					adjacencyMatrix[row][col] = -1;
@@ -46,9 +46,10 @@ public class Graph225 {
 		}
 
 		//Prints adjacencyMatrix
-		public void print (int[][] adjacencyMatrix){
+		public void print (){
+			System.out.println(adjacencyMatrix.length);
 			for (int col = 0 ; col < adjacencyMatrix.length ; col++){
-				for (int row = 0 ; row < adjacencyMatrix[0].length ; row++){
+				for (int row = 0 ; row < adjacencyMatrix[col].length ; row++){
 					System.out.print(adjacencyMatrix[row][col]);
 					System.out.print(" ");
 				}
@@ -79,7 +80,32 @@ public class Graph225 {
 		 *             If something bad happens while reading the input file.
 		 */
 		public void read(String file) throws IOException {
-			throw new UnsupportedOperationException("This method has not been implemented yet.");
+			File path = new File (file);
+			Scanner fileReader = new Scanner (path);
+			int col=0; 	//rows
+			int row=0;	//columns
+			System.out.println("Tokenizer");
+
+			while (fileReader.hasNextLine()){
+				
+				String line = fileReader.nextLine();
+				Scanner tokenizer = new Scanner (line);
+
+				while (tokenizer.hasNextInt()){
+					int token = tokenizer.nextInt();
+					System.out.print(token);
+					System.out.print(" ");
+					System.out.println(adjacencyMatrix[0][0]);
+					adjacencyMatrix[row][col]=token;
+					if (adjacencyMatrix.length < row){
+						row ++;
+					} else {
+						row = 0;
+					}
+				}
+				System.out.println();
+
+			}
 		}
 
 		/**
@@ -210,6 +236,13 @@ public class Graph225 {
 
 	public static void main(String[] args) {
 		Graph graphy = new Graph ();
+		try{
+			graphy.read("test.txt");
+
+		} catch (IOException ex){
+			throw new UnsupportedOperationException(".");
+
+		}
 	}
 
 }
