@@ -1,4 +1,3 @@
-
 /*
  * University of Victoria
  * CSC 225 - Fall 2016
@@ -32,22 +31,20 @@ public class Graph225 {
 
 		public Graph() {
 			adjacencyMatrix = new int [arrSize][arrSize];
-			fillZeros();
-			print();
+			fillMatrix(-1);
 		}
 
-		//Fills the newly created Matrix with -1
-		public void fillZeros (){
+		//Fills the newly created Matrix with an int
+		public void fillMatrix (int filler){
 			for (int col = 0 ; col < adjacencyMatrix.length ; col++){
 				for (int row = 0 ; row < adjacencyMatrix[0].length ; row ++){
-					adjacencyMatrix[row][col] = -1;
+					adjacencyMatrix[row][col] = filler;
 				}
 			}
 		}
 
 		//Prints adjacencyMatrix
 		public void print (){
-			System.out.println(adjacencyMatrix.length);
 			for (int col = 0 ; col < adjacencyMatrix.length ; col++){
 				for (int row = 0 ; row < adjacencyMatrix[col].length ; row++){
 					System.out.print(adjacencyMatrix[row][col]);
@@ -63,12 +60,37 @@ public class Graph225 {
 		 * @param n
 		 *            The size of the graph
 		 * @param density
+		 * @param
 		 *            The density of the graph
 		 */
 		public void generate(int n, int density) {
-			throw new UnsupportedOperationException("This method has not been implemented yet.");
+			if (density == 1){
+				int m = (7*n)/5;
+				fillRandom(n, m);
+			}
 		}
 
+		/** 
+		 * Helper method, generates m random numbers (zero or one) between
+		 *	@param n - graph size
+		 *	@param m - number of random edges to generate
+		 */
+		public void fillRandom (int n, int m){
+			int mAdded = 0;
+			int randCol = 0;
+			int randRow = 0;
+			int total = 0;
+			Random rand = new Random ();
+			while (m <= mAdded){
+				mAdded = rand.nextInt(2);
+				randRow = rand.nextInt(n+1);
+				randCol = rand.nextInt(n+1);
+
+				if (mAdded == 1){
+					total ++;
+				}
+			}
+		}
 		/**
 		 * Reads an adjacency matrix from the specified file, and updates this
 		 * graph's data. For the file structure please refer to the sample input
@@ -80,32 +102,30 @@ public class Graph225 {
 		 *             If something bad happens while reading the input file.
 		 */
 		public void read(String file) throws IOException {
-			File path = new File (file);
-			Scanner fileReader = new Scanner (path);
-			int col=0; 	//rows
-			int row=0;	//columns
-			System.out.println("Tokenizer");
-
-			while (fileReader.hasNextLine()){
+			try{
+				File path = new File (file);
+				Scanner fileReader = new Scanner (path);
+				int col=0; 	//rows
+				int row=0;	//columns
 				
-				String line = fileReader.nextLine();
-				Scanner tokenizer = new Scanner (line);
-
-				while (tokenizer.hasNextInt()){
-					int token = tokenizer.nextInt();
-					System.out.print(token);
-					System.out.print(" ");
-					System.out.println(adjacencyMatrix[0][0]);
-					adjacencyMatrix[row][col]=token;
-					if (adjacencyMatrix.length < row){
-						row ++;
-					} else {
-						row = 0;
+				while (fileReader.hasNextLine()){	
+					String line = fileReader.nextLine();
+					Scanner tokenizer = new Scanner (line);
+					while (tokenizer.hasNextInt()){
+						int token = tokenizer.nextInt();
+						adjacencyMatrix[col][row]=token;
+						if (col < adjacencyMatrix.length-1){
+							col ++;
+						}
 					}
+					col = 0;
+					row ++;
 				}
-				System.out.println();
-
+				print();
+			} catch (IOException io){
+				System.out.println("Something bad happens while reading the input file");
 			}
+
 		}
 
 		/**
@@ -138,111 +158,119 @@ public class Graph225 {
 			this.adjacencyMatrix = m;
 		}
 
-	}
+	
 
-	/**
-	 * Traverses the given graph starting at the specified vertex, using the
-	 * depth first search graph traversal algorithm.
-	 * <p>
-	 * <b>NOTICE</b>: adjacent vertices must be visited in strictly increasing
-	 * order (for automated marking)
-	 * 
-	 * @param graph
-	 *            The graph to traverse
-	 * @param vertex
-	 *            The starting vertex (as per its position in the adjacency
-	 *            matrix)
-	 * @return a vector R of n elements where R[j] is 1 if vertex j can be
-	 *         reached from {@code vertex} and 0 otherwise
-	 */
-	public int[] reach(Graph graph, int vertex) {
-		throw new UnsupportedOperationException("This method has not been implemented yet.");
-	}
+		/**
+		 * Traverses the given graph starting at the specified vertex, using the
+		 * depth first search graph traversal algorithm.
+		 * <p>
+		 * <b>NOTICE</b>: adjacent vertices must be visited in strictly increasing
+		 * order (for automated marking)
+		 * 
+		 * @param graph
+		 *            The graph to traverse
+		 * @param vertex
+		 *            The starting vertex (as per its position in the adjacency
+		 *            matrix)
+		 * @return a vector R of n elements where R[j] is 1 if vertex j can be
+		 *         reached from {@code vertex} and 0 otherwise
+		 */
+		public int[] reach(Graph graph, int vertex) {
+			throw new UnsupportedOperationException("This method has not been implemented yet.");
+		}
 
-	/**
-	 * Computes the number connected components of a given graph.
-	 * <p>
-	 * <b>NOTICE</b>: adjacent vertices must be visited in strictly increasing
-	 * order (for automated marking)
-	 * 
-	 * @param graph
-	 *            The graph
-	 * @return The number of connected component in {@code graph}
-	 */
-	public int connectedComponents(Graph graph) {
-		throw new UnsupportedOperationException("This method has not been implemented yet.");
-	}
+		/**
+		 * Computes the number connected components of a given graph.
+		 * <p>
+		 * <b>NOTICE</b>: adjacent vertices must be visited in strictly increasing
+		 * order (for automated marking)
+		 * 
+		 * @param graph
+		 *            The graph
+		 * @return The number of connected component in {@code graph}
+		 */
+		public int connectedComponents(Graph graph) {
+			throw new UnsupportedOperationException("This method has not been implemented yet.");
+		}
 
-	/**
-	 * Determines whether a given graph contains at least one cycle.
-	 * <p>
-	 * <b>NOTICE</b>: adjacent vertices must be visited in strictly increasing
-	 * order (for automated marking)
-	 * 
-	 * @param graph
-	 *            The graph
-	 * @return whether or not {@code graph} contains at least one cycle
-	 */
-	public boolean hasCycle(Graph graph) {
-		throw new UnsupportedOperationException("This method has not been implemented yet.");
-	}
+		/**
+		 * Determines whether a given graph contains at least one cycle.
+		 * <p>
+		 * <b>NOTICE</b>: adjacent vertices must be visited in strictly increasing
+		 * order (for automated marking)
+		 * 
+		 * @param graph
+		 *            The graph
+		 * @return whether or not {@code graph} contains at least one cycle
+		 */
+		public boolean hasCycle(Graph graph) {
+			throw new UnsupportedOperationException("This method has not been implemented yet.");
+		}
 
-	/**
-	 * Computes the pre-order for each vertex in the given graph.
-	 * <p>
-	 * <b>NOTICE</b>: adjacent vertices must be visited in strictly increasing
-	 * order (for automated marking)
-	 * 
-	 * @param graph
-	 *            The graph
-	 * @return a vector R of n elements, representing the pre-order of
-	 *         {@code graph}
-	 */
-	public int[] preOrder(Graph graph) {
-		throw new UnsupportedOperationException("This method has not been implemented yet.");
-	}
+		/**
+		 * Computes the pre-order for each vertex in the given graph.
+		 * <p>
+		 * <b>NOTICE</b>: adjacent vertices must be visited in strictly increasing
+		 * order (for automated marking)
+		 * 
+		 * @param graph
+		 *            The graph
+		 * @return a vector R of n elements, representing the pre-order of
+		 *         {@code graph}
+		 */
+		public int[] preOrder(Graph graph) {
+			throw new UnsupportedOperationException("This method has not been implemented yet.");
+		}
 
-	/**
-	 * Computes the post-order for each vertex in the given graph.
-	 * <p>
-	 * <b>NOTICE</b>: adjacent vertices must be visited in strictly increasing
-	 * order (for automated marking)
-	 * 
-	 * @param graph
-	 *            The graph
-	 * @return a vector R of n elements, representing the post-order of
-	 *         {@code graph}
-	 */
-	public int[] postOrder(Graph graph) {
-		throw new UnsupportedOperationException("This method has not been implemented yet.");
-	}
+		/**
+		 * Computes the post-order for each vertex in the given graph.
+		 * <p>
+		 * <b>NOTICE</b>: adjacent vertices must be visited in strictly increasing
+		 * order (for automated marking)
+		 * 
+		 * @param graph
+		 *            The graph
+		 * @return a vector R of n elements, representing the post-order of
+		 *         {@code graph}
+		 */
+		public int[] postOrder(Graph graph) {
+			throw new UnsupportedOperationException("This method has not been implemented yet.");
+		}
 
-	/**
-	 * test and exercise the algorithms and data structures developed for the
-	 * first five parts of this assignment extensively. The output generated by
-	 * this method must convince the marker that the algorithms and data
-	 * structures are implemented as specified. For example:
-	 * <ul>
-	 * <li>Generate graphs of different sizes and densities
-	 * <li>Test the algorithms for different graphs
-	 * <li>Test your algorithms using the sample input file testadjmat.txt
-	 * 
-	 * @throws Exception
-	 *             if something bad happens!
-	 */
-	public void test() throws Exception {
-		throw new UnsupportedOperationException("This method has not been implemented yet.");
-	}
+		/**
+		 * test and exercise the algorithms and data structures developed for the
+		 * first five parts of this assignment extensively. The output generated by
+		 * this method must convince the marker that the algorithms and data
+		 * structures are implemented as specified. For example:
+		 * <ul>
+		 * <li>Generate graphs of different sizes and densities
+		 * <li>Test the algorithms for different graphs
+		 * <li>Test your algorithms using the sample input file testadjmat.txt
+		 * 
+		 * @throws Exception
+		 *             if something bad happens!
+		 */
+		public void test() throws Exception {
+			throw new UnsupportedOperationException("This method has not been implemented yet.");
+		}
 
 	public static void main(String[] args) {
+		
 		Graph graphy = new Graph ();
 		try{
 			graphy.read("test.txt");
+			graphy.generate(1,1);
 
 		} catch (IOException ex){
 			throw new UnsupportedOperationException(".");
 
 		}
+
+		//Testing generate method - size 1, density 1
+		//Graph graphy = new Graph ();
+		//graphy.generate(1,1);
+
+
 	}
 
 }
