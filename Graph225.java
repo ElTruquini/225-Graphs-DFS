@@ -31,14 +31,17 @@ public class Graph225 {
 
 		public Graph() {
 			adjacencyMatrix = new int [arrSize][arrSize];
-			fillMatrix(-1);
+			fillMatrix(-1, 15);
 		}
 
-		//Fills the newly created Matrix with an int
-		public void fillMatrix (int filler){
-			for (int col = 0 ; col < adjacencyMatrix.length ; col++){
-				for (int row = 0 ; row < adjacencyMatrix[0].length ; row ++){
+		//Fills the (n x n) Matrix with int filler
+		public void fillMatrix (int filler, int n){
+			//System.out.println("FillMatrix");
+			//System.out.println("n FillMatrix is " + n);
+			for (int col = 0 ; col < n ; col++){
+				for (int row = 0 ; row < n ; row ++){
 					adjacencyMatrix[row][col] = filler;
+					//System.out.println("Adding " + filler + " " + adjacencyMatrix[row][col] );
 				}
 			}
 		}
@@ -64,32 +67,40 @@ public class Graph225 {
 		 *            The density of the graph
 		 */
 		public void generate(int n, int density) {
+			fillMatrix(0, n);
 			if (density == 1){
 				int m = (7*n)/5;
+				System.out.println("m for generate is " + m);
 				fillRandom(n, m);
 			}
+
+			//need to function test for density 2
 		}
 
 		/** 
-		 * Helper method, generates m random numbers (zero or one) between
+		 * Helper method, generates two random numbers between 0 and n and uses themt to create a random position in adjacencyMatrix
+		 * coutner keeps track of the total edges added.
 		 *	@param n - graph size
 		 *	@param m - number of random edges to generate
 		 */
 		public void fillRandom (int n, int m){
-			int mAdded = 0;
 			int randCol = 0;
 			int randRow = 0;
-			int total = 0;
+			int counter = 0;
 			Random rand = new Random ();
-			while (m <= mAdded){
-				mAdded = rand.nextInt(2);
-				randRow = rand.nextInt(n+1);
-				randCol = rand.nextInt(n+1);
 
-				if (mAdded == 1){
-					total ++;
+			while (counter < m){
+				System.out.println();
+				System.out.println("counter is: " + counter);
+				randRow = rand.nextInt(n);
+				randCol = rand.nextInt(n);
+				if (adjacencyMatrix[randRow][randCol] != 1){
+					adjacencyMatrix[randRow][randCol] = 1;
+					System.out.println("Adding in Row:" + randRow + " col:" + randCol);
+					counter ++;
 				}
 			}
+			
 		}
 		/**
 		 * Reads an adjacency matrix from the specified file, and updates this
@@ -253,24 +264,58 @@ public class Graph225 {
 		public void test() throws Exception {
 			throw new UnsupportedOperationException("This method has not been implemented yet.");
 		}
-
+	}
 	public static void main(String[] args) {
 		
-		Graph graphy = new Graph ();
-		try{
-			graphy.read("test.txt");
-			graphy.generate(1,1);
-
-		} catch (IOException ex){
-			throw new UnsupportedOperationException(".");
-
-		}
-
-		//Testing generate method - size 1, density 1
 		//Graph graphy = new Graph ();
-		//graphy.generate(1,1);
+		//try{
+			//graphy.read("test.txt");
 
+		//} catch (IOException ex){
+		//	throw new UnsupportedOperationException(".");
 
+		//}
+
+		/*
+		//				===================	DONE
+		//Testing generate method, size 1, density 1, density 1. Expected: Graph 1x1 with 1 edge
+		Graph graphy = new Graph ();
+		graphy.generate(1,1);
+		graphy.print();
+		//*/
+
+		/*
+		//				===================	DONE
+		//Testing GENERATE, matrix size 0x0, density 1. Expected: Empty matrix
+			Graph graphy = new Graph ();
+			graphy.generate(0,1);
+			graphy.print();
+		//*/
+
+		/*
+		//Testing GENERATE, matrix size 5x5, density 1. Expected: 7 edges in 5x5 matrix
+			Graph graphy = new Graph ();
+			graphy.generate(5,1);
+			graphy.print();
+		//*/
+
+		/* ////////////////////////////////***********working in this test case
+		//Testing GENERATE, matrix size 10
+			graphy.generate(10,5);
+			graphy.print();
+		//*/
+
+		/*
+		//Testing GENERATE, matrix size 15
+			graphy.generate(15,5);
+			graphy.print();
+		//*/
+
+		/*
+		//Testing GENERATE, matrix size 16 - index out of bounds expected
+			graphy.generate(16,5);
+			graphy.print();
+		//*/
 	}
 
 }
