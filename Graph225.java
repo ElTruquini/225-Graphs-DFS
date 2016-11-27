@@ -34,7 +34,7 @@ public class Graph225 {
 			fillMatrix(-1, 15);
 		}
 
-		//Fills the (n x n) Matrix with int filler
+		//Helper method, Fills the (n x n) Matrix with int n filler which serves as filler
 		public void fillMatrix (int filler, int n){
 			//System.out.println("FillMatrix");
 			//System.out.println("n FillMatrix is " + n);
@@ -46,7 +46,7 @@ public class Graph225 {
 			}
 		}
 
-		//Prints adjacencyMatrix
+		//Helper method, Prints adjacencyMatrix on terminal
 		public void print (){
 			for (int col = 0 ; col < adjacencyMatrix.length ; col++){
 				for (int row = 0 ; row < adjacencyMatrix[col].length ; row++){
@@ -70,11 +70,19 @@ public class Graph225 {
 			fillMatrix(0, n);
 			if (density == 1){
 				int m = (7*n)/5;
-				System.out.println("m for generate is " + m);
+				//System.out.println("Generate - m: " + m + " with d:" + density);
 				fillRandom(n, m);
+			}else if (density == 2){
+				int m = (n*n)/4;
+				//System.out.println("Generate - m:" + m  + " with d:" + density);
+				fillRandom(n, m);
+			} else if(density == 3){
+				int m = (2*(n*n))/5;
+				//System.out.println("Generate - m:" + m  + " with d:" + density);
+				fillRandom(n, m);
+			} else {
+				System.out.println("Density must be 1, 2 or 3");
 			}
-
-			//need to function test for density 2
 		}
 
 		/** 
@@ -88,20 +96,18 @@ public class Graph225 {
 			int randRow = 0;
 			int counter = 0;
 			Random rand = new Random ();
-
 			while (counter < m){
-				System.out.println();
-				System.out.println("counter is: " + counter);
 				randRow = rand.nextInt(n);
 				randCol = rand.nextInt(n);
 				if (adjacencyMatrix[randRow][randCol] != 1){
 					adjacencyMatrix[randRow][randCol] = 1;
-					System.out.println("Adding in Row:" + randRow + " col:" + randCol);
+					//System.out.println("Added:" + counter);
 					counter ++;
 				}
 			}
-			
+			System.out.println(" fillRandom; Total number of edges added: " + counter);
 		}
+
 		/**
 		 * Reads an adjacency matrix from the specified file, and updates this
 		 * graph's data. For the file structure please refer to the sample input
@@ -136,7 +142,6 @@ public class Graph225 {
 			} catch (IOException io){
 				System.out.println("Something bad happens while reading the input file");
 			}
-
 		}
 
 		/**
@@ -149,7 +154,16 @@ public class Graph225 {
 		 *             If something bad happens while writing the file.
 		 */
 		public void write(String file) throws IOException {
-			throw new UnsupportedOperationException("This method has not been implemented yet.");
+			FileWriter fw = new FileWriter (file);
+			BufferedWriter bw = new BufferedWriter(fw);
+			for (int i = 0 ; adjacencyMatrix[i][0] != -1 ; i++){ //condition stops the loop when -1 found
+				for (int j = 0 ; adjacencyMatrix[i][j] != -1 ; j++){
+					bw.write(String.valueOf(adjacencyMatrix[j][i]));
+					bw.write(" ");
+				}
+				bw.newLine();	
+			}
+			bw.close();
 		}
 
 		/**
@@ -168,8 +182,6 @@ public class Graph225 {
 		public void setAdjacencyMatrix(int[][] m) {
 			this.adjacencyMatrix = m;
 		}
-
-	
 
 		/**
 		 * Traverses the given graph starting at the specified vertex, using the
@@ -266,49 +278,78 @@ public class Graph225 {
 		}
 	}
 	public static void main(String[] args) {
-		
-		//Graph graphy = new Graph ();
-		//try{
-			//graphy.read("test.txt");
-
-		//} catch (IOException ex){
-		//	throw new UnsupportedOperationException(".");
-
-		//}
 
 		/*
-		//				===================	DONE
-		//Testing generate method, size 1, density 1, density 1. Expected: Graph 1x1 with 1 edge
+		//Testing GENERATE/WRITE, matrix size 0x0, density 1. Expected: Empty matrix
 		Graph graphy = new Graph ();
 		graphy.generate(1,1);
 		graphy.print();
+		try{
+				graphy.write("fn.txt");
+			} catch (IOException io){
+				System.out.println("An error has ocurred while writting in the file");
+			}
 		//*/
 
 		/*
-		//				===================	DONE
-		//Testing GENERATE, matrix size 0x0, density 1. Expected: Empty matrix
+		//Testing GENERATE/WRITE, matrix size 0x0, density 1. Expected: Empty matrix
 			Graph graphy = new Graph ();
 			graphy.generate(0,1);
 			graphy.print();
+			try{
+				graphy.write("fn.txt");
+			} catch (IOException io){
+				System.out.println("An error has ocurred while writting in the file");
+			}
 		//*/
 
 		/*
-		//Testing GENERATE, matrix size 5x5, density 1. Expected: 7 edges in 5x5 matrix
+		//Testing GENERATE/WRITE, matrix size 5x5, density 1. Expected: 7 edges in 5x5 matrix
 			Graph graphy = new Graph ();
 			graphy.generate(5,1);
 			graphy.print();
-		//*/
-
-		/* ////////////////////////////////***********working in this test case
-		//Testing GENERATE, matrix size 10
-			graphy.generate(10,5);
-			graphy.print();
+			try{
+				graphy.write("fn.txt");
+			} catch (IOException io){
+				System.out.println("An error has ocurred while writting in the file");
+			}
 		//*/
 
 		/*
-		//Testing GENERATE, matrix size 15
-			graphy.generate(15,5);
+		//Testing GENERATE/WRITE, matrix size 10x10, density 2. Expected: 25 edges in 10x10 matrix
+			Graph graphy = new Graph ();
+			graphy.generate(10,2);
 			graphy.print();
+			try{
+				graphy.write("fn.txt");
+			} catch (IOException io){
+				System.out.println("An error has ocurred while writting in the file");
+			}
+		//*/
+
+		/*
+		//Testing GENERATE/WRITE, matrix size 10x10, density 3. Expected: 40 edges in 15x15 matrix
+			Graph graphy = new Graph ();
+			graphy.generate(10,3);
+			graphy.print();
+			try{
+				graphy.write("fn.txt");
+			} catch (IOException io){
+				System.out.println("An error has ocurred while writting in the file");
+			}
+		//*/
+
+		/*
+		//Testing GENERATE/WRITE, matrix size 5x5, density 3. Expected: 3 edges in 15x15 matrix
+			Graph graphy = new Graph ();
+			graphy.generate(5,3);
+			graphy.print();
+			try{
+				graphy.write("fn.txt");
+			} catch (IOException io){
+				System.out.println("An error has ocurred while writting in the file");
+			}
+
 		//*/
 
 		/*
