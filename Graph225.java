@@ -36,12 +36,10 @@ public class Graph225 {
 
 		//Helper method, Fills the (n x n) Matrix with int n filler which serves as filler
 		public void fillMatrix (int filler, int n){
-			//System.out.println("FillMatrix");
-			//System.out.println("n FillMatrix is " + n);
+
 			for (int col = 0 ; col < n ; col++){
 				for (int row = 0 ; row < n ; row ++){
 					adjacencyMatrix[row][col] = filler;
-					//System.out.println("Adding " + filler + " " + adjacencyMatrix[row][col] );
 				}
 			}
 		}
@@ -99,9 +97,9 @@ public class Graph225 {
 			while (counter < m){
 				randRow = rand.nextInt(n);
 				randCol = rand.nextInt(n);
-				if (adjacencyMatrix[randRow][randCol] != 1){
+				if (adjacencyMatrix[randRow][randCol] != 1 && (randRow != randCol)){ //checks for self-loops 
 					adjacencyMatrix[randRow][randCol] = 1;
-					//System.out.println("Added:" + counter);
+					adjacencyMatrix[randCol][randRow] = 1;
 					counter ++;
 				}
 			}
@@ -138,9 +136,8 @@ public class Graph225 {
 					col = 0;
 					row ++;
 				}
-				print();
 			} catch (IOException io){
-				System.out.println("Something bad happens while reading the input file");
+				System.out.println("Error reading input file");
 			}
 		}
 
@@ -183,6 +180,18 @@ public class Graph225 {
 			this.adjacencyMatrix = m;
 		}
 
+		//Helper method, calculates size of Graph
+		public int sizeGraph (){
+			int counter= 0;
+			for (int i =0 ; i < adjacencyMatrix[0].length ; i++){
+				if (adjacencyMatrix[0][i] != -1){
+					counter++;
+				}
+			}
+			return counter; 
+		}
+
+
 		/**
 		 * Traverses the given graph starting at the specified vertex, using the
 		 * depth first search graph traversal algorithm.
@@ -199,7 +208,31 @@ public class Graph225 {
 		 *         reached from {@code vertex} and 0 otherwise
 		 */
 		public int[] reach(Graph graph, int vertex) {
-			throw new UnsupportedOperationException("This method has not been implemented yet.");
+			Stack <Integer> stack = new Stack <Integer>();
+			System.out.println("Graph Size:" + sizeGraph());
+			int size = sizeGraph();
+			int [] visited = new int [size];
+			int curr = 0;
+			stack.push(vertex);
+			System.out.println("REACH Method, Vertex: " + stack.peek() + " \n");
+			while (!stack.empty()){
+				System.out.println();
+				System.out.println("NEW WHILE LOOP- CURR(poped):" +stack.peek());
+				curr = stack.pop();
+				System.out.println("Has Curr been visited? Visited[Curr]:" + visited[curr]);
+				if (visited[curr] == 0){
+					visited[curr] = 1;
+					System.out.println("NO, changing visited[curr] to 1");
+					for (int i=size-1 ; i >= 0 ; i--){
+						System.out.println("Comparing (1) - Matrix[curr]:" + adjacencyMatrix[curr][i] + ", i:" +i);
+						if (adjacencyMatrix[curr][i] == 1 && visited[i] == 0){
+							System.out.println("Pushing:" + i);
+							stack.push(i);
+						}
+					}
+				}
+			}
+		return visited;	//HOLDER MUST BE CHANGED
 		}
 
 		/**
@@ -241,7 +274,7 @@ public class Graph225 {
 		 * @return a vector R of n elements, representing the pre-order of
 		 *         {@code graph}
 		 */
-		public int[] preOrder(Graph graph) {
+		public int[][] preOrder(Graph graph) {
 			throw new UnsupportedOperationException("This method has not been implemented yet.");
 		}
 
@@ -256,7 +289,7 @@ public class Graph225 {
 		 * @return a vector R of n elements, representing the post-order of
 		 *         {@code graph}
 		 */
-		public int[] postOrder(Graph graph) {
+		public int[][] postOrder(Graph graph) {
 			throw new UnsupportedOperationException("This method has not been implemented yet.");
 		}
 
@@ -278,6 +311,39 @@ public class Graph225 {
 		}
 	}
 	public static void main(String[] args) {
+		
+		//Input: Test6x6. Testing READ, REACH. Expected result [1 1 0 0 0 0]
+		Graph graphy = new Graph ();
+		try {
+			graphy.read("test2x2.txt");
+		} catch (IOException io){
+			System.out.println("Error reading file");
+		}
+		int [] visited = graphy.reach(graphy, 1);
+		System.out.println("\nVisited Result:");
+		for (int i =0 ; i < visited.length ; i ++){
+			System.out.print(visited[i]);
+			System.out.print(" ");
+		}
+		System.out.println();
+		System.out.println();
+		graphy.print();
+
+		//*/
+
+		/*
+		//Testing READ 9x9
+		Graph graphy = new Graph ();
+		try {
+			graphy.read("test9x9.txt");
+		} catch (IOException io){
+			System.out.println("Error reading file");
+		}
+		graphy.reach(graphy, 0);
+		graphy.print();
+
+		//*/
+
 
 		/*
 		//Testing GENERATE/WRITE, matrix size 0x0, density 1. Expected: Empty matrix
@@ -304,16 +370,26 @@ public class Graph225 {
 		//*/
 
 		/*
-		//Testing GENERATE/WRITE, matrix size 5x5, density 1. Expected: 7 edges in 5x5 matrix
+		//Testing GENERATE/WRITE/REACH, matrix size 5x5, density 1. Expected: 7 edges in 5x5 matrix
 			Graph graphy = new Graph ();
 			graphy.generate(5,1);
-			graphy.print();
+
 			try{
 				graphy.write("fn.txt");
 			} catch (IOException io){
 				System.out.println("An error has ocurred while writting in the file");
 			}
-		//*/
+			
+			int [] visited = graphy.reach(graphy, 0);
+			System.out.println("\nVisited Result:");
+			for (int i =0 ; i < visited.length ; i ++){
+				System.out.print(visited[i]);
+				System.out.print(" ");
+			}
+			System.out.println();
+			System.out.println();
+			graphy.print();
+			//*/
 
 		/*
 		//Testing GENERATE/WRITE, matrix size 10x10, density 2. Expected: 25 edges in 10x10 matrix
