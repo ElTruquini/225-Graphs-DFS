@@ -1,7 +1,7 @@
 /*
  * University of Victoria
  * CSC 225 - Fall 2016
- * 	Graphs DFS Implementation - A4
+ * 	Graphs DFS Implementat
  *	Daniel Olaya Moran - V00855054
  */
 import java.io.*;
@@ -27,28 +27,41 @@ public class Graph225 {
 		 * An adjacency matrix representation of this graph
 		 */
 		private int[][] adjacencyMatrix;
-		int arrSize = 15;
+		private int arrSize = 16;	// max array size
+		private int [] visited;		//0 for unvisited, 1 for visited
+		private int [] id; // stores the component number for each vertex
+		private int [] parent; // stores the parent of the visited node
+		private	int size;	// actual array size, without -1 fillers
+		private int ccTotal; // counter for number of connected componetns
+		private boolean hasCycle;
+		private int[][] preOrder;
+		private int[][] postOrder;
+		private int test;
+
 
 		public Graph() {
 			adjacencyMatrix = new int [arrSize][arrSize];
-			fillMatrix(-1, 15);
+			fillMatrix(-1, arrSize, adjacencyMatrix);
+			ccTotal = 0;
 		}
 
 		//Helper method, Fills the (n x n) Matrix with int n filler which serves as filler
-		public void fillMatrix (int filler, int n){
+		public void fillMatrix (int filler, int n, int[][] matrix){
 
 			for (int col = 0 ; col < n ; col++){
 				for (int row = 0 ; row < n ; row ++){
-					adjacencyMatrix[row][col] = filler;
+					matrix[row][col] = filler;
 				}
 			}
 		}
 
+
+
 		//Helper method, Prints adjacencyMatrix on terminal
-		public void print (){
-			for (int col = 0 ; col < adjacencyMatrix.length ; col++){
-				for (int row = 0 ; row < adjacencyMatrix[col].length ; row++){
-					System.out.print(adjacencyMatrix[row][col]);
+		public void print (int[][] matrix){
+			for (int col = 0 ; col < matrix.length ; col++){
+				for (int row = 0 ; row < matrix[col].length ; row++){
+					System.out.print(matrix[row][col]);
 					System.out.print(" ");
 				}
 				System.out.println();
@@ -65,22 +78,23 @@ public class Graph225 {
 		 *            The density of the graph
 		 */
 		public void generate(int n, int density) {
-			fillMatrix(0, n);
+			fillMatrix(0, n, adjacencyMatrix);
 			if (density == 1){
 				int m = (7*n)/5;
-				//System.out.println("Generate - m: " + m + " with d:" + density);
+				System.out.println("Generating graph with density:" + density + ", m:"+ m );
 				fillRandom(n, m);
 			}else if (density == 2){
 				int m = (n*n)/4;
-				//System.out.println("Generate - m:" + m  + " with d:" + density);
+				System.out.println("Generating graph with density:" + density + ", m:"+ m );
 				fillRandom(n, m);
 			} else if(density == 3){
 				int m = (2*(n*n))/5;
-				//System.out.println("Generate - m:" + m  + " with d:" + density);
+				System.out.println("Generating graph with density:" + density + ", m:"+ m );
 				fillRandom(n, m);
 			} else {
 				System.out.println("Density must be 1, 2 or 3");
 			}
+			sizeGraph();
 		}
 
 		/** 
@@ -103,7 +117,6 @@ public class Graph225 {
 					counter ++;
 				}
 			}
-			System.out.println(" fillRandom; Total number of edges added: " + counter);
 		}
 
 		/**
@@ -116,29 +129,29 @@ public class Graph225 {
 		 * @throws IOException
 		 *             If something bad happens while reading the input file.
 		 */
-		public void read(String file) throws IOException {
-			try{
-				File path = new File (file);
-				Scanner fileReader = new Scanner (path);
-				int col=0; 	//rows
-				int row=0;	//columns
-				
-				while (fileReader.hasNextLine()){	
-					String line = fileReader.nextLine();
-					Scanner tokenizer = new Scanner (line);
-					while (tokenizer.hasNextInt()){
-						int token = tokenizer.nextInt();
-						adjacencyMatrix[col][row]=token;
-						if (col < adjacencyMatrix.length-1){
-							col ++;
-						}
+		public void read(String file) throws IOException 
+		{
+			File path = new File (file);
+			Scanner fileReader = new Scanner (path);
+			int col=0; 	//rows
+			int row=0;	//columns
+			while (fileReader.hasNextLine())
+			{	
+				String line = fileReader.nextLine();
+				Scanner tokenizer = new Scanner (line);
+				while (tokenizer.hasNextInt())
+				{
+					int token = tokenizer.nextInt();
+					adjacencyMatrix[col][row]=token;
+					if (col < adjacencyMatrix.length-1)
+					{
+						col ++;
 					}
-					col = 0;
-					row ++;
 				}
-			} catch (IOException io){
-				System.out.println("Error reading input file");
+				col = 0;
+				row ++;
 			}
+			sizeGraph();
 		}
 
 		/**
@@ -153,7 +166,7 @@ public class Graph225 {
 		public void write(String file) throws IOException {
 			FileWriter fw = new FileWriter (file);
 			BufferedWriter bw = new BufferedWriter(fw);
-			for (int i = 0 ; adjacencyMatrix[i][0] != -1 ; i++){ //condition stops the loop when -1 found
+			for (int i = 0 ; adjacencyMatrix[i][0] != -1 ; i++){//condition stops the loop when -1 found
 				for (int j = 0 ; adjacencyMatrix[i][j] != -1 ; j++){
 					bw.write(String.valueOf(adjacencyMatrix[j][i]));
 					bw.write(" ");
@@ -181,14 +194,12 @@ public class Graph225 {
 		}
 
 		//Helper method, calculates size of Graph
-		public int sizeGraph (){
-			int counter= 0;
+		public void sizeGraph (){
 			for (int i =0 ; i < adjacencyMatrix[0].length ; i++){
 				if (adjacencyMatrix[0][i] != -1){
-					counter++;
+					size++;
 				}
 			}
-			return counter; 
 		}
 
 
@@ -209,73 +220,123 @@ public class Graph225 {
 		 */
 		public int[] reach(Graph graph, int vertex) {
 			Stack <Integer> stack = new Stack <Integer>();
-			System.out.println("Graph Size:" + sizeGraph());
-			int size = sizeGraph();
-			int [] visited = new int [size];
+			visited = new int [size];
+			id = new int [size];
+			parent = new int [size];
+			dfs(vertex);
+			return visited;	
+		}
+
+		public void printArr (int[] arr){
+			for (int i =0 ; i < arr.length ; i ++)
+			{
+				System.out.print(arr[i]);
+				System.out.print(" ");
+			}
+			System.out.println();
+			System.out.println();
+		}
+
+		public void dfs (int vertex){
+			Stack <Integer> stack = new Stack <Integer>();
 			int curr = 0;
-			stack.push(vertex);
-			System.out.println("REACH Method, Vertex: " + stack.peek() + " \n");
+			int parentIndex = vertex;
+			stack.push(vertex);			
 			while (!stack.empty()){
-				System.out.println();
-				System.out.println("NEW WHILE LOOP- CURR(poped):" +stack.peek());
 				curr = stack.pop();
-				System.out.println("Has Curr been visited? Visited[Curr]:" + visited[curr]);
 				if (visited[curr] == 0){
-					visited[curr] = 1;
-					System.out.println("NO, changing visited[curr] to 1");
+					id[curr] = ccTotal; 	//marks CC number
+					visited[curr] = 1;		//mark parent after discovery
 					for (int i=size-1 ; i >= 0 ; i--){
-						System.out.println("Comparing (1) - Matrix[curr]:" + adjacencyMatrix[curr][i] + ", i:" +i);
 						if (adjacencyMatrix[curr][i] == 1 && visited[i] == 0){
-							System.out.println("Pushing:" + i);
 							stack.push(i);
+							parent[i] = curr;
+						}
+						if ( (parent[curr] != i) && (adjacencyMatrix[curr][i] == 1 && visited[i] == 1) ){
+							hasCycle = true;
 						}
 					}
 				}
 			}
-		return visited;	//HOLDER MUST BE CHANGED
 		}
 
-		/**
-		 * Computes the number connected components of a given graph.
-		 * <p>
-		 * <b>NOTICE</b>: adjacent vertices must be visited in strictly increasing
-		 * order (for automated marking)
-		 * 
-		 * @param graph
-		 *            The graph
-		 * @return The number of connected component in {@code graph}
-		 */
-		public int connectedComponents(Graph graph) {
-			throw new UnsupportedOperationException("This method has not been implemented yet.");
-		}
+		public void dfsPre (int vertex){
+			Stack <Integer> stack = new Stack <Integer>();
+			//Stack <Integer> posty = new Stack <Integer>();
+			//int postySize =0;
+			visited = new int [size];
+			id = new int [size];
+			parent = new int [size];
+			int curr = 0;
+			//int postCounter =0;
+			int preCounter =0;
+			boolean skipFirst = true;
+			int parentIndex = vertex;
+			stack.push(vertex);
+			//int [] postAdded = new int [size];
+			//postAdded[vertex] =1;
+			//System.out.println("DFS Method, Vertex: " + stack.peek());
+			while (!stack.empty()){
+				//boolean allChildrenVisited = true;
+				//System.out.println("\n---====NEW WHILE LOOP=====---- Curr(poped):" +stack.peek()+ ", parentIndex:" + parentIndex);
+				curr = stack.pop();
+				//System.out.println("Has Curr been visited? Visited[Curr]:" + visited[curr]);
+				if (visited[curr] == 0){
+					id[curr] = ccTotal; 	//marks CC number
+					visited[curr] = 1;		//mark parent after discovery
+					if (!skipFirst){	//Skips recording the root node on the final preOrder matrix
+						preOrder[preCounter][vertex] = curr;
+						preCounter++;
+					}
+					if (skipFirst){
+						skipFirst =false;
+					}
+					//System.out.println("****PREORDER, changing preOrder[preCounter:"+preCounter+"][vertex:"+vertex+"] = curr:"+curr);
+					//System.out.println("M unvisited, changing visited[curr] = 1, parent["+curr+"]:" + parentIndex);
+					for (int i=size-1 ; i >= 0 ; i--){
+						//System.out.println("Looking for edges (1) - adjacencyMatrix[curr:"+curr+"][i:" +i+"] = " + adjacencyMatrix[curr][i]);
+						if (adjacencyMatrix[curr][i] == 1 && visited[i] == 0){
+							//System.out.println("DFS PUSHING:" + i + ", parent[i:"+i+"] = "+curr);
+							stack.push(i);
+							parent[i] = curr;
+							//allChildrenVisited = false;
+							//posty.push(curr);
+							//postCounter++;
+							//System.out.println("+++POSTY["+curr+"] ="+curr);
+						}
+						//hasCyle method
+						if ( (parent[curr] != i) && (adjacencyMatrix[curr][i] == 1 && visited[i] == 1) ){
+							hasCycle = true;
+						}
+					}
+				}
+				/*
+				if (allChildrenVisited == true){ 
+					if (!skipFirst){	
+						postOrder[postCounter][vertex] = curr;
+						System.out.println("---RECORDED VERTEX: "+ curr);
+						postCounter++;
+						postAdded[curr] = 1;
+					}
+					if (skipFirst){
+						skipFirst =false;
+					}
+				}*/
 
-		/**
-		 * Determines whether a given graph contains at least one cycle.
-		 * <p>
-		 * <b>NOTICE</b>: adjacent vertices must be visited in strictly increasing
-		 * order (for automated marking)
-		 * 
-		 * @param graph
-		 *            The graph
-		 * @return whether or not {@code graph} contains at least one cycle
-		 */
-		public boolean hasCycle(Graph graph) {
-			throw new UnsupportedOperationException("This method has not been implemented yet.");
-		}
-
-		/**
-		 * Computes the pre-order for each vertex in the given graph.
-		 * <p>
-		 * <b>NOTICE</b>: adjacent vertices must be visited in strictly increasing
-		 * order (for automated marking)
-		 * 
-		 * @param graph
-		 *            The graph
-		 * @return a vector R of n elements, representing the pre-order of
-		 *         {@code graph}
-		 */
-		public int[][] preOrder(Graph graph) {
-			throw new UnsupportedOperationException("This method has not been implemented yet.");
+			}
+			/*
+			while (postySize >= 1){
+				if (postAdded[posty.peek()] ==0){
+					System.out.println("---RECORDED VERTEX:"+posty.peek()+"), postySize:"+postySize);
+					postOrder[postCounter][vertex] = posty.pop();
+					postCounter++;
+					postySize--;
+				}
+				int mf =posty.pop();
+				postySize--;
+				System.out.println("Just poped this useless mf "+ mf);
+			}
+			*/
 		}
 
 		/**
@@ -290,8 +351,87 @@ public class Graph225 {
 		 *         {@code graph}
 		 */
 		public int[][] postOrder(Graph graph) {
-			throw new UnsupportedOperationException("This method has not been implemented yet.");
+			postOrder = new int[size][size];/*
+			preOrder = new int[size][size];
+
+			fillMatrix(-1, size, postOrder);
+			for (int i = 0 ; i <= size-1; i++){
+				dfsPre(i);
+			}*/
+			return postOrder;
 		}
+		
+
+		/**
+		 * Computes the pre-order for each vertex in the given graph.
+		 * <p>
+		 * <b>NOTICE</b>: adjacent vertices must be visited in strictly increasing
+		 * order (for automated marking)
+		 * 
+		 * @param graph
+		 *            The graph
+		 * @return a vector R of n elements, representing the pre-order of
+		 *         {@code graph}
+		 */
+		public int[][] preOrder(Graph graph) {			
+			//postOrder = new int[size][size];
+			preOrder = new int[size][size];
+			fillMatrix(-1, size, preOrder);
+			for (int i = 0 ; i <= size-1; i++){
+				dfsPre(i);
+			}
+			return preOrder;
+		}
+
+		/**
+		 * Computes the number connected components of a given graph.
+		 * <p>
+		 * <b>NOTICE</b>: adjacent vertices must be visited in strictly increasing
+		 * order (for automated marking)
+		 * 
+		 * @param graph
+		 *            The graph
+		 * @return The number of connected component in {@code graph}
+		 */
+		public int connectedComponents(Graph graph) {
+			visited = new int [size];
+			id = new int [size];
+			parent = new int [size];
+			for (int i = size-1; i>=0 ; i--){
+				if (id[i] == 0){
+					ccTotal ++;
+					dfs(i);
+				}
+			}
+			return ccTotal;	
+		}
+
+
+		/**
+		 * Determines whether a given graph contains at least one cycle.
+		 * <p>
+		 * <b>NOTICE</b>: adjacent vertices must be visited in strictly increasing
+		 * order (for automated marking)
+		 * 
+		 * @param graph
+		 *            The graph
+		 * @return whether or not {@code graph} contains at least one cycle
+		 */
+		public boolean hasCycle(Graph graph) {
+			hasCycle = false;
+			visited = new int [size];
+			id = new int [size];
+			parent = new int [size];
+			for (int i = 0 ; i <= size-1; i++)
+			{
+				if (id[i] == 0){
+					ccTotal ++;
+					dfs(i);
+				}
+			}
+			return hasCycle;
+		}
+
 
 		/**
 		 * test and exercise the algorithms and data structures developed for the
@@ -307,132 +447,103 @@ public class Graph225 {
 		 *             if something bad happens!
 		 */
 		public void test() throws Exception {
-			throw new UnsupportedOperationException("This method has not been implemented yet.");
+			switch (test){
+				case 1:
+					generate (5,3);
+					write("fn.txt");
+					System.out.println("\nTest1: Testing Generate(4x4 - density 3), Write (output: fn.txt), HasCycles");		
+					System.out.println("\nPrinting adjacencyMatrix:");
+					print(adjacencyMatrix);
+					break;
+				case 2:
+					generate (11,2);
+					write("fn.txt");
+					System.out.println("\nTest2: Testing Generate(10x10 - density 2), Write (output: fn.txt), HasCycles");
+					System.out.println("\nPrinting adjacencyMatrix:");
+					print(adjacencyMatrix);
+					break;
+				case 3:
+					generate (15,1);
+					write("fn.txt");
+					System.out.println("\nTest3: Testing Generate(15x15 - density 1), Write (output: fn.txt), HasCycles");
+					System.out.println("\nPrinting adjacencyMatrix:");
+					print(adjacencyMatrix);
+					break;
+				case 4:
+					System.out.println("Test4: Testing Read, HasCycle, ConnectedComponents, Write from  file: testadjmat.txt");
+					read("testadjmat.txt");
+					write("fn.txt");
+					System.out.println("\nPrinting adjacencyMatrix:");
+					print(adjacencyMatrix);
+					break;
+				case 5:
+					System.out.println("Test5: Testing Read, HasCycle, ConnectedComponents, Write from  file: test1.txt");
+					read("test1.txt");
+					write("fn.txt");
+					System.out.println("\nPrinting adjacencyMatrix:");
+					print(adjacencyMatrix);
+					break;
+				case 6:
+					System.out.println("Test6: Testing READ, WRITE from file: test2.txt");
+					read("test2.txt");
+					write("fn.txt");
+					System.out.println("\nPrinting adjacencyMatrix:");
+					print(adjacencyMatrix);
+					break;
+				case 7:
+					System.out.println("Test7: Pre-order traversal and REACH using testadjmat.txt");
+					read("Part5.txt");
+					break;	
+			}
 		}
 	}
 	public static void main(String[] args) {
 		
-		//Input: Test6x6. Testing READ, REACH. Expected result [1 1 0 0 0 0]
+		//Change graphy.test value from 1 to 3
+		//Test: 1; Generates 4x4 density 3, calculates conected componets (terminal), calculates if graph has cycles (terminal), prints adjacency matrix (terminal), creates output file "fn.txt" with adjacency matrix
+		//Test: 2; Generates 10x10 density 2, calculates conected componets (terminal), calculates if graph has cycles (terminal), prints adjacency matrix (terminal), creates output file "fn.txt" with adjacency matrix
+		//Test: 3; Generates 15x15 density 1, calculates conected componets (terminal), calculates if graph has cycles (terminal), prints adjacency matrix (terminal), creates output file "fn.txt" with adjacency matrix
+		//Test: 4; Read from  "testadjmat.xt", calculates conected componets (terminal), calculates if graph has cycles (terminal), prints adjacency matrix (terminal), creates output file "fn.txt" with adjacency matrix
+		//Test: 5; Read from  "test1.xt"- No cycle and 1 connected component. calculates conected componets (terminal), calculates if graph has cycles (terminal), prints adjacency matrix (terminal), creates output file "fn.txt" with adjacency matrix
+		//Test: 6; Read from  "test2.xt"- No cycle and 2 connected component. calculates conected componets (terminal), calculates if graph has cycles (terminal), prints adjacency matrix (terminal), creates output file "fn.txt" with adjacency matrix	
 		Graph graphy = new Graph ();
-		try {
-			graphy.read("test2x2.txt");
-		} catch (IOException io){
-			System.out.println("Error reading file");
-		}
-		int [] visited = graphy.reach(graphy, 1);
-		System.out.println("\nVisited Result:");
-		for (int i =0 ; i < visited.length ; i ++){
-			System.out.print(visited[i]);
-			System.out.print(" ");
-		}
-		System.out.println();
-		System.out.println();
-		graphy.print();
-
-		//*/
-
-		/*
-		//Testing READ 9x9
-		Graph graphy = new Graph ();
-		try {
-			graphy.read("test9x9.txt");
-		} catch (IOException io){
-			System.out.println("Error reading file");
-		}
-		graphy.reach(graphy, 0);
-		graphy.print();
-
-		//*/
-
-
-		/*
-		//Testing GENERATE/WRITE, matrix size 0x0, density 1. Expected: Empty matrix
-		Graph graphy = new Graph ();
-		graphy.generate(1,1);
-		graphy.print();
+		graphy.test = 1; 	//Modify this int (from 1 to 6) to run different tests
 		try{
-				graphy.write("fn.txt");
-			} catch (IOException io){
-				System.out.println("An error has ocurred while writting in the file");
-			}
+			graphy.test();
+			int cc = graphy.connectedComponents(graphy);
+			boolean cycle = graphy.hasCycle(graphy);
+			System.out.println("Connected Components: "+ cc );
+			System.out.println("Graph has cycles?: "+ cycle);
+			System.out.println("Check file fn.txt for output (write method)");
+		} catch (Exception e){
+			System.out.println("Unexpected error happened");
+		}
 		//*/
 
 		/*
-		//Testing GENERATE/WRITE, matrix size 0x0, density 1. Expected: Empty matrix
-			Graph graphy = new Graph ();
-			graphy.generate(0,1);
-			graphy.print();
-			try{
-				graphy.write("fn.txt");
-			} catch (IOException io){
-				System.out.println("An error has ocurred while writting in the file");
-			}
-		//*/
-
-		/*
-		//Testing GENERATE/WRITE/REACH, matrix size 5x5, density 1. Expected: 7 edges in 5x5 matrix
-			Graph graphy = new Graph ();
-			graphy.generate(5,1);
-
-			try{
-				graphy.write("fn.txt");
-			} catch (IOException io){
-				System.out.println("An error has ocurred while writting in the file");
-			}
-			
-			int [] visited = graphy.reach(graphy, 0);
-			System.out.println("\nVisited Result:");
-			for (int i =0 ; i < visited.length ; i ++){
-				System.out.print(visited[i]);
-				System.out.print(" ");
-			}
+		//Test 7: Testing Pre-order traversal with "Part5.txt" file. Pre-order[][] printed on terminal. Reach method results (terminal)
+		// Post order testing not included, could not generate 
+		Graph graphy = new Graph ();
+		try{
+			graphy.test = 7; 	//this int should be modified to run different tests
+			graphy.test();
+			graphy.preOrder(graphy);
+			System.out.println("\nPrinting adjacencyMatrix:");
+			graphy.print(graphy.adjacencyMatrix);
 			System.out.println();
+			for(int i = 0 ; i < graphy.size ; i++){
+				int []temp = graphy.reach(graphy, i);
+				System.out.println("Testing REACH - Printing resulting[] from vertex:" + i);
+				graphy.printArr(temp);
+			}
+		
+			System.out.println("\nTesting PRE-Order traversal:");
+			graphy.print(graphy.preOrder);
 			System.out.println();
-			graphy.print();
-			//*/
 
-		/*
-		//Testing GENERATE/WRITE, matrix size 10x10, density 2. Expected: 25 edges in 10x10 matrix
-			Graph graphy = new Graph ();
-			graphy.generate(10,2);
-			graphy.print();
-			try{
-				graphy.write("fn.txt");
-			} catch (IOException io){
-				System.out.println("An error has ocurred while writting in the file");
-			}
-		//*/
-
-		/*
-		//Testing GENERATE/WRITE, matrix size 10x10, density 3. Expected: 40 edges in 15x15 matrix
-			Graph graphy = new Graph ();
-			graphy.generate(10,3);
-			graphy.print();
-			try{
-				graphy.write("fn.txt");
-			} catch (IOException io){
-				System.out.println("An error has ocurred while writting in the file");
-			}
-		//*/
-
-		/*
-		//Testing GENERATE/WRITE, matrix size 5x5, density 3. Expected: 3 edges in 15x15 matrix
-			Graph graphy = new Graph ();
-			graphy.generate(5,3);
-			graphy.print();
-			try{
-				graphy.write("fn.txt");
-			} catch (IOException io){
-				System.out.println("An error has ocurred while writting in the file");
-			}
-
-		//*/
-
-		/*
-		//Testing GENERATE, matrix size 16 - index out of bounds expected
-			graphy.generate(16,5);
-			graphy.print();
+		} catch (Exception e){
+			System.out.println("Unexpected error happened");
+		}
 		//*/
 	}
-
 }
