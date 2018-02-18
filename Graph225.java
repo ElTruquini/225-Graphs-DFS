@@ -1,7 +1,7 @@
 /*
  * University of Victoria
  * CSC 225 - Fall 2016
- * 	Graphs DFS Implementat
+ * 	Graphs DFS Implementation
  *	Daniel Olaya Moran - V00855054
  */
 import java.io.*;
